@@ -1,5 +1,6 @@
 const maxTimeAtPark = 10;
 const baseParkVisitProb = 0.01;
+const baseParkLeaveProb = 0.01;
 
 function s4() {
   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
@@ -19,8 +20,7 @@ class Person {
 
   leavePark() {
     return this.atPark &&
-      (Math.random() <= 1 - this.park.quality ||
-      Math.random() <= this.timeAtPark/maxTimeAtPark);
+      Math.random() <= 1 - this.park.quality + this.timeAtPark/maxTimeAtPark + baseParkLeaveProb;
   }
 
   visitPark() {
