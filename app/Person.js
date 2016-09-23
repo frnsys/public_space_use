@@ -1,6 +1,6 @@
-const maxTimeAtPark = 10;
+const maxTimeAtPark = 30;
 const baseParkVisitProb = 0.01;
-const baseParkLeaveProb = 0.01;
+const baseParkLeaveProb = 0.02;
 
 function s4() {
   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);

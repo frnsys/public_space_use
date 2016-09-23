@@ -3,8 +3,8 @@ import dat from 'dat-gui';
 import Scene from './app/Scene';
 import City from './app/City';
 
-const rows = 16;
-const cols = 16;
+const rows = 12;
+const cols = 12;
 
 // TODO?
 var config = {};

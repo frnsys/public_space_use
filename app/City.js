@@ -3,14 +3,14 @@ import * as THREE from 'three';
 import Park from './Park';
 import Building from './Building';
 
-const side = 2;
+const side = 3;
 const margin = 0.5;
 const pPark = 0.1;
 const vacantProb = 0.6;
 const maxBuildingOccupants = 3;
 
 // set to above 0 to slow things down
-const frameSpacing = 0;
+const frameSpacing = 1;
 
 
 class City {
@@ -106,7 +106,8 @@ class City {
   spawnBuilding(row, col) {
     var x = row * this.fullSide,
         z = col * this.fullSide,
-        building = new Building(x, z, this);
+        flipped = row % 2 == 0,
+        building = new Building(x, z, flipped, this);
     return building;
   }
 

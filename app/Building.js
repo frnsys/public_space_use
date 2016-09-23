@@ -2,20 +2,20 @@ import _ from 'underscore';
 import * as THREE from 'three';
 import Person from './Person';
 
-const floors = 6;
+const floors = 8;
 const side = 1;
 const height = 0.6;
 const maxOccupants = 3;
 
 class Building {
-  constructor(x, z, city) {
+  constructor(x, z, flipped, city) {
     this.x = x;
     this.z = z;
     this.city = city;
     this.nFloors = 0;
     this.apartments = [];
-
-    _.times(floors, this.addFloor.bind(this));
+    this.flipped = flipped;
+    this.addFloors(floors);
   }
 
   populate(vacantProb) {
@@ -32,14 +32,7 @@ class Building {
     return residents;
   }
 
-  addFloor() {
-    var positions = [
-      [0, 0],
-      [0, side],
-      [side, 0],
-      [side, side]
-    ];
-
+  addFloor(positions) {
     positions.forEach(pos => {
       var x = pos[0],
           z = pos[1],
@@ -52,8 +45,29 @@ class Building {
         this.height + apartment.mesh.geometry.parameters.height/2,
         this.z + z);
     });
+  }
 
-    this.nFloors += 1;
+  addFloors(nFloors) {
+    // 3x2
+    var positions = [
+      [0, 0],
+      [0, side],
+      [side, 0],
+      [side, side],
+      [side*2, 0],
+      [side*2, side],
+    ];
+
+    if (this.flipped) {
+      positions = positions.reverse();
+    }
+
+
+    _.times(nFloors, (i) => {
+      var fromTop = nFloors - i;
+      this.addFloor(positions.slice(0, fromTop*2));
+      this.nFloors += 1;
+    });
   }
 
   // total height of the building

@@ -1,9 +1,9 @@
 import _ from 'underscore';
 import * as THREE from 'three';
 
-const side = 1;
+const side = 1.5;
 const height = 0.01;
-const maxOccupants = 20;
+const maxOccupants = 36;
 
 class Park {
   constructor(x, z, city) {
