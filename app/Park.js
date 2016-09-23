@@ -3,7 +3,7 @@ import * as THREE from 'three';
 
 const side = 1.5;
 const height = 0.01;
-const maxOccupants = 36;
+const maxOccupants = 200;
 
 class Park {
   constructor(x, z, city) {
@@ -11,6 +11,12 @@ class Park {
     this.z = z;
     this.city = city;
     this.plots = [];
+
+    // create empty parent to manage rotations
+    var geometry = new THREE.BoxGeometry(0,0,0),
+        material = new THREE.MeshLambertMaterial();
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.isVisible = false;
     this.generatePlots();
   }
 
@@ -28,17 +34,19 @@ class Park {
           plot = new Plot();
 
       this.plots.push(plot);
-      this.city.place(
-        plot.mesh,
-        this.x + x,
+      plot.mesh.position.set(
+        x,
         plot.mesh.geometry.parameters.height/2,
-        this.z + z);
+        z);
+      this.mesh.add(plot.mesh);
     });
+    this.city.place(this.mesh, this.x, 0, this.z);
+    this.mesh.rotation.y = Math.random() * 2 * Math.PI;
   }
 
   get quality() {
-    var occupancy = _.reduce(this.plots, (m,p) => m + p.occupants.length, 0)/(this.plots.length * maxOccupants);
-    return Math.pow(occupancy, 2);
+    var occupancy = _.reduce(this.plots, (m,p) => m + p.occupants.length, 0);
+    return Math.sqrt(occupancy/maxOccupants);
   }
 
   randomUnoccupiedPlot() {

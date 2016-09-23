@@ -7,11 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "three": "^0.79.0",
-    "underscore": "^1.8.3",
-    "jquery": "^3.1.0",
+    "chroma-js": "^1.2.1",
     "dat-gui": "^0.5.0",
-    "jstat": "^1.5.3"
+    "jquery": "^3.1.0",
+    "jstat": "^1.5.3",
+    "three": "^0.79.0",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "autoprefixer-loader": "^3.2.0",

@@ -1,6 +1,9 @@
-const maxTimeAtPark = 30;
-const baseParkVisitProb = 0.01;
+const maxTimeAtPark = 60;
+const baseParkVisitProb = 0.0005;
 const baseParkLeaveProb = 0.02;
+const homeHours = [0,6];
+const parkLeaveProbHomeHours = 0.2;
+const parkVisitProbHomeHours = 0.1;
 
 function s4() {
   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
@@ -15,17 +18,20 @@ class Person {
     this.id = guid();
     this.apartment = apartment;
     this.timeAtPark = 0;
+    this.timeAtHome = 0;
     this.atPark = false;
   }
 
-  leavePark() {
+  leavePark(hour) {
+    var homeHour = hour > homeHours[0] && hour < homeHours[1];
     return this.atPark &&
-      Math.random() <= 1 - this.park.quality + this.timeAtPark/maxTimeAtPark + baseParkLeaveProb;
+      Math.random() <= Math.max(0, 1 - this.park.quality) + this.timeAtPark/maxTimeAtPark + baseParkLeaveProb + (homeHour ? parkLeaveProbHomeHours : 0);
   }
 
-  visitPark() {
+  visitPark(hour) {
+    var homeHour = hour > homeHours[0] && hour < homeHours[1];
     return !this.atPark &&
-      Math.random() <= this.park.quality + baseParkVisitProb;
+      Math.random() <= (this.park.quality + baseParkVisitProb) * (homeHour ? parkVisitProbHomeHours : 1);
   }
 }
 

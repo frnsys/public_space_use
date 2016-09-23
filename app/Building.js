@@ -5,7 +5,7 @@ import Person from './Person';
 const floors = 8;
 const side = 1;
 const height = 0.6;
-const maxOccupants = 3;
+const maxOccupants = 8;
 
 class Building {
   constructor(x, z, flipped, city) {
@@ -15,6 +15,12 @@ class Building {
     this.nFloors = 0;
     this.apartments = [];
     this.flipped = flipped;
+
+    // create empty parent to manage rotations
+    var geometry = new THREE.BoxGeometry(0,0,0),
+        material = new THREE.MeshLambertMaterial();
+    this.mesh = new THREE.Mesh(geometry, material);
+    this.mesh.isVisible = false;
     this.addFloors(floors);
   }
 
@@ -39,11 +45,11 @@ class Building {
           apartment = new Apartment(this);
 
       this.apartments.push(apartment);
-      this.city.place(
-        apartment.mesh,
-        this.x + x,
+      apartment.mesh.position.set(
+        x,
         this.height + apartment.mesh.geometry.parameters.height/2,
-        this.z + z);
+        z);
+      this.mesh.add(apartment.mesh);
     });
   }
 
@@ -62,12 +68,14 @@ class Building {
       positions = positions.reverse();
     }
 
-
     _.times(nFloors, (i) => {
       var fromTop = nFloors - i;
       this.addFloor(positions.slice(0, fromTop*2));
       this.nFloors += 1;
     });
+
+    this.city.place(this.mesh, this.x, 0, this.z);
+    this.mesh.rotation.y = Math.random() * 2 * Math.PI;
   }
 
   // total height of the building
@@ -92,6 +100,7 @@ class Apartment {
 
   update() {
     var hex = this.occupancy * 0xFF,
+        // color = (hex << 16) | (hex << 8) | 0x32;
         color = (hex << 16) | 0x32 | 0x32;
     this.mesh.material.color.setHex(color);
   }

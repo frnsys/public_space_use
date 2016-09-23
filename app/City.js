@@ -1,16 +1,26 @@
+import $ from 'jquery';
 import _ from 'underscore';
 import * as THREE from 'three';
 import Park from './Park';
 import Building from './Building';
+import chroma from 'chroma-js';
+
+const colors = {
+  dayTop: '#0735ef',
+  dayBottom: '#268ca8',
+  nightTop: '#1a1a1a',
+  nightBottom: '#610303'
+};
 
 const side = 3;
-const margin = 0.5;
+const margin = 0.8;
 const pPark = 0.1;
 const vacantProb = 0.6;
-const maxBuildingOccupants = 3;
+const timeAtHome = [10,20]
+const ticksPerHour = 4;
 
 // set to above 0 to slow things down
-const frameSpacing = 1;
+const frameSpacing = 0;
 
 
 class City {
@@ -18,11 +28,10 @@ class City {
     this.rows = rows;
     this.cols = cols;
     this.side = side;
-    this.margin = margin;
     this.scene = scene;
     this._scene = scene.scene; // meh
 
-    this.fullSide = this.side + 2*this.margin;
+    this.fullSide = this.side + 2*margin;
     this.gridWidth = this.fullSide * cols;
     this.gridDepth = this.fullSide * rows;
 
@@ -49,6 +58,11 @@ class City {
     this.spawn();
 
     this.frameCountdown = frameSpacing;
+    this.time = 0;
+  }
+
+  get hour() {
+    return this.time % 24;
   }
 
   // for conveniently placing things with the offset
@@ -65,14 +79,15 @@ class City {
     this.population.forEach(p => {
       if (p.atPark) {
         p.timeAtPark++;
-        if (p.leavePark()) {
+        if (p.leavePark(this.hour)) {
           p.plot.removeOccupant(p);
           p.plot = null;
           p.timeAtPark = 0;
+          p.timeAtHome = _.random(timeAtHome[0], timeAtHome[1]);
           p.atPark = false;
           p.apartment.addOccupant(p);
         }
-      } else if (p.visitPark()) {
+      } else if (p.timeAtHome <= 0 && p.visitPark(this.hour)) {
         var plot = p.park.randomUnoccupiedPlot();
         if (plot) {
           p.plot = plot;
@@ -80,6 +95,8 @@ class City {
           p.plot.addOccupant(p);
           p.apartment.removeOccupant(p);
         }
+      } else {
+        p.timeAtHome--;
       }
     });
   }
@@ -104,8 +121,8 @@ class City {
   }
 
   spawnBuilding(row, col) {
-    var x = row * this.fullSide,
-        z = col * this.fullSide,
+    var x = row * this.fullSide + (Math.random()-0.5) * margin/2,
+        z = col * this.fullSide + (Math.random()-0.5) * margin/2,
         flipped = row % 2 == 0,
         building = new Building(x, z, flipped, this);
     return building;
@@ -133,11 +150,18 @@ class City {
   }
 
   spawnGround() {
-    var planeGeometry = new THREE.PlaneGeometry(this.gridWidth, this.gridDepth),
-        planeMaterial = new THREE.MeshLambertMaterial( {color: 0xAAAAAA, side: THREE.DoubleSide} ),
+    var planeWidth = this.gridWidth * 1.1,
+        planeDepth = this.gridDepth * 1.1,
+        planeGeometry = new THREE.PlaneGeometry(planeWidth, planeDepth),
+      planeMaterial = new THREE.MeshLambertMaterial({
+        opacity: 0.6,
+        transparent: true,
+        color: 0xAAAAAA,
+        side: THREE.DoubleSide
+      }),
         plane = new THREE.Mesh( planeGeometry, planeMaterial );
     plane.rotation.x = Math.PI / 2;
-    this.place(plane, this.gridWidth/2 - this.margin*2, 0, this.gridDepth/2 - this.margin*2);
+    this.place(plane, this.gridWidth/2 - margin*2, 0, this.gridDepth/2 - margin*2);
   }
 
   // to easily visually identify where the origin is (for debugging)
@@ -158,7 +182,13 @@ class City {
       this.frameCountdown--;
     } else {
       this.update();
+      this.time += 1/ticksPerHour;
       this.frameCountdown = frameSpacing;
+
+      var colorScale = 1 - Math.abs((this.hour-12)/12),
+          fromColor = chroma.mix(colors.nightTop, colors.dayTop, colorScale, 'lab'),
+          toColor = chroma.mix(colors.nightBottom, colors.dayBottom, colorScale, 'lab');
+      $('html').css('background', `linear-gradient(to bottom, ${fromColor} 0%, ${toColor} 100%)`);
     }
   }
 
